@@ -5,6 +5,7 @@ import json
 import os
 
 GUILD_ID = 1427156527994765324
+LOG_CHANNEL_ID = 1509188612930142218
 DB_FILE = "Fracture_scripts.json"
 
 def load_db():
@@ -37,10 +38,22 @@ class ScriptView(discord.ui.View):
     async def select_callback(self, interaction: discord.Interaction):
         db = load_db()
         name = interaction.data['values'][0]
-        await interaction.response.send_message(f"""```lua
-{name}
+        
+        await interaction.response.send_message(f"""```lua\n{name}\n
 ```""", ephemeral=True)
-
+        
+        log_channel = interaction.guild.get_channel(LOG_CHANNEL_ID)
+        if log_channel:
+            em = discord.Embed(
+                title="📦 มีผู้รับสคริปต์ใหม่", 
+                color=0x5865F2, 
+                timestamp=discord.utils.utcnow()
+            )
+            em.add_field(name="👤 ผู้ใช้งาน", value=interaction.user.mention, inline=True)
+            em.add_field(name="📜 สคริปต์ที่รับ", value=f"`{name}`", inline=True)
+            em.set_thumbnail(url=interaction.user.avatar.url if interaction.user.avatar else "")
+            em.set_footer(text=f"User ID: {interaction.user.id}")
+            await log_channel.send(embed=em)
     async def refresh_callback(self, interaction: discord.Interaction):
         self.refresh_ui()
         await interaction.response.edit_message(view=self)
